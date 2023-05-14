@@ -1,0 +1,35 @@
+const axios = require('axios');
+
+// Set up authentication
+const username = 'YOUR_USERNAME';
+const password = 'YOUR_PASSWORD';
+const auth = { username, password };
+
+// Set up Bitbucket API endpoint URL
+const baseUrl = 'https://api.bitbucket.org/2.0';
+
+// Define the project and repository to process
+const projectKey = 'PROJECT_KEY';
+const repoSlug = 'REPO_SLUG';
+
+// Fetch all pull requests for the repository
+const url = `${baseUrl}/repositories/${projectKey}/${repoSlug}/pullrequests`;
+const { data: pullRequests } = await axios.get(url, { auth });
+
+// Loop through each pull request and approve/merge it
+for (const pullRequest of pullRequests.values()) {
+  // Approve the pull request
+  const approveUrl = `${baseUrl}/repositories/${projectKey}/${repoSlug}/pullrequests/${pullRequest.id}/approve`;
+  await axios.post(approveUrl, null, { auth });
+
+  // Merge the pull request
+  const mergeUrl = `${baseUrl}/repositories/${projectKey}/${repoSlug}/pullrequests/${pullRequest.id}/merge`;
+  await axios.post(mergeUrl, null, { auth });
+}
+This implementation fetches all pull requests for a given repository, then loops through each one, approving and merging it. The auth object is used to authenticate with the Bitbucket API using HTTP Basic authentication. You'll need to replace the placeholders in the code with your actual Bitbucket username, password, project key, and repository slug.
+
+
+
+
+
+
