@@ -1,26 +1,101 @@
-public static void main(String[] args) {
-        // Create a ModuleFinder based on the current class loader
-        ModuleFinder finder = ModuleFinder.of(ClassLoader.getSystemClassLoader());
+import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
 
-        // Find all modules in the module path
-        Set<ModuleReference> moduleReferences = finder.findAll();
+const directoryPath = '/path/to/your/directory'; // Replace with the actual directory path
+const deprecatedListPath = 'deprecatedlist.txt';
+const removeListPath = 'removelist.txt';
 
-        // Iterate over modules and print information
-        for (ModuleReference moduleReference : moduleReferences) {
-            String moduleName = moduleReference.descriptor().name();
-            Set<String> opens = moduleReference.descriptor().opens();
-            
-            System.out.println("Module: " + moduleName);
-            
-            if (!opens.isEmpty()) {
-                System.out.println("Opens:");
-                for (String openedPackage : opens) {
-                    System.out.println("  " + openedPackage);
-                }
-            } else {
-                System.out.println("No opens directive for this module.");
-            }
+function convertYamlToProperties(yamlString: string): string {
+    const yamlObject = yaml.safeLoad(yamlString);
+    return traverseObject(yamlObject);
+}
 
-            System.out.println();
+function traverseObject(obj: Record<string, any>, currentPath: string[] = []): string {
+    let properties = '';
+
+    for (const [key, value] of Object.entries(obj)) {
+        const newPath = [...currentPath, key];
+        if (typeof value === 'object' && !Array.isArray(value)) {
+            // Recursively traverse nested objects
+            properties += traverseObject(value, newPath);
+        } else {
+            // Convert the path and value to properties file notation
+            properties += `${newPath.join('.')}=${value}\n`;
         }
     }
+
+    return properties;
+}
+
+function readPropertyKeysFromFile(filePath: string): string[] {
+    const content = fs.readFileSync(filePath, 'utf8');
+    return content.trim().split('\n');
+}
+
+function checkPropertyKeys(fileContent: string, deprecatedKeys: string[], removedKeys: string[], filePath: string): void {
+    let deprecatedPropertiesFound = false;
+    let removedPropertiesFound = false;
+
+    for (const deprecatedKey of deprecatedKeys) {
+        if (fileContent.includes(`${deprecatedKey}=`)) {
+            deprecatedPropertiesFound = true;
+        }
+    }
+
+    for (const removedKey of removedKeys) {
+        if (fileContent.includes(`${removedKey}=`)) {
+            removedPropertiesFound = true;
+        }
+    }
+
+    if (deprecatedPropertiesFound || removedPropertiesFound) {
+        console.log(`File Path: ${filePath}`);
+        if (deprecatedPropertiesFound) {
+            console.log('Deprecated Properties:');
+            for (const deprecatedKey of deprecatedKeys) {
+                if (fileContent.includes(`${deprecatedKey}=`)) {
+                    console.log(`  ${deprecatedKey}`);
+                }
+            }
+        }
+        if (removedPropertiesFound) {
+            console.log('Removed Properties:');
+            for (const removedKey of removedKeys) {
+                if (fileContent.includes(`${removedKey}=`)) {
+                    console.log(`  ${removedKey}`);
+                }
+            }
+        }
+        console.log('\n');
+    }
+}
+
+function processFile(filePath: string, deprecatedKeys: string[], removedKeys: string[]): void {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
+        const propertiesContent = convertYamlToProperties(fileContent);
+        checkPropertyKeys(propertiesContent, deprecatedKeys, removedKeys, filePath);
+    } else if (filePath.endsWith('.properties')) {
+        checkPropertyKeys(fileContent, deprecatedKeys, removedKeys, filePath);
+    }
+}
+
+function processDirectory(directoryPath: string, deprecatedKeys: string[], removedKeys: string[]): void {
+    const files = fs.readdirSync(directoryPath);
+    files.forEach((file) => {
+        const filePath = path.join(directoryPath, file);
+        if (fs.statSync(filePath).isDirectory()) {
+            processDirectory(filePath, deprecatedKeys, removedKeys);
+        } else {
+            processFile(filePath, deprecatedKeys, removedKeys);
+        }
+    });
+}
+
+// Read deprecated and removed property keys from files
+const deprecatedKeys = readPropertyKeysFromFile(deprecatedListPath);
+const removedKeys = readPropertyKeysFromFile(removeListPath);
+
+// Start processing the directory
+processDirectory(directoryPath, deprecatedKeys, removedKeys);
