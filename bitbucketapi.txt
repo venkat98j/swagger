@@ -11,12 +11,12 @@ function convertYamlToProperties(yamlString: string): string {
     return yamlDocuments.map(traverseObject).join('\n');
 }
 
-function traverseObject(obj: Record<string, any>, visited = new Set()): string {
-    if (visited.has(obj)) {
+function traverseObject(obj: Record<string, any>, visited: any[] = []): string {
+    if (visited.includes(obj)) {
         return ''; // Avoid infinite loop in case of circular references
     }
 
-    visited.add(obj);
+    visited.push(obj);
 
     let properties = '';
 
@@ -96,15 +96,4 @@ function processDirectory(directoryPath: string, deprecatedKeys: string[], remov
         const filePath = path.join(directoryPath, file);
         if (fs.statSync(filePath).isDirectory()) {
             processDirectory(filePath, deprecatedKeys, removedKeys);
-        } else {
-            processFile(filePath, deprecatedKeys, removedKeys);
-        }
-    });
-}
-
-// Read deprecated and removed property keys from files
-const deprecatedKeys = readPropertyKeysFromFile(deprecatedListPath);
-const removedKeys = readPropertyKeysFromFile(removeListPath);
-
-// Start processing the directory
-processDirectory(directoryPath, deprecatedKeys, removedKeys);
+        } else
