@@ -11,14 +11,20 @@ function convertYamlToProperties(yamlString: string): string {
     return yamlDocuments.map(traverseObject).join('\n');
 }
 
-function traverseObject(obj: Record<string, any>): string {
+function traverseObject(obj: Record<string, any>, visited = new Set()): string {
+    if (visited.has(obj)) {
+        return ''; // Avoid infinite loop in case of circular references
+    }
+
+    visited.add(obj);
+
     let properties = '';
 
     const traverse = (currentPath: string[] = []) => {
         for (const [key, value] of Object.entries(obj)) {
             const newPath = [...currentPath, key];
             if (typeof value === 'object' && !Array.isArray(value)) {
-                traverse(newPath);
+                properties += traverseObject(value, visited);
             } else {
                 // Convert the path and value to properties file notation
                 properties += `${newPath.join('.')}=${value}\n`;
