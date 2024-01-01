@@ -1,40 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import * as jsonToProperties from 'json-to-properties';
 
 const directoryPath = '/path/to/your/directory'; // Replace with the actual directory path
 const deprecatedListPath = 'deprecatedlist.txt';
 const removeListPath = 'removelist.txt';
 
-function convertYamlToProperties(yamlString: string): string {
+function convertYamlToJson(yamlString: string): any {
     const yamlDocuments = yaml.safeLoadAll(yamlString);
-    return yamlDocuments.map(traverseObject).join('\n');
+    return yamlDocuments.map((doc: any) => doc || {}).reduce((acc: any, doc: any) => ({ ...acc, ...doc }), {});
 }
 
-function traverseObject(obj: Record<string, any>, visited: any[] = []): string {
-    if (visited.includes(obj)) {
-        return ''; // Avoid infinite loop in case of circular references
-    }
-
-    visited.push(obj);
-
-    let properties = '';
-
-    const traverse = (currentPath: string[] = []) => {
-        for (const [key, value] of Object.entries(obj)) {
-            const newPath = [...currentPath, key];
-            if (typeof value === 'object' && !Array.isArray(value)) {
-                properties += traverseObject(value, visited);
-            } else {
-                // Convert the path and value to properties file notation
-                properties += `${newPath.join('.')}=${value}\n`;
-            }
-        }
-    };
-
-    traverse();
-
-    return properties;
+function convertJsonToProperties(json: any): string {
+    return jsonToProperties(json, { separator: '.' });
 }
 
 function readPropertyKeysFromFile(filePath: string): string[] {
@@ -83,7 +62,8 @@ function checkPropertyKeys(fileContent: string, deprecatedKeys: string[], remove
 function processFile(filePath: string, deprecatedKeys: string[], removedKeys: string[]): void {
     const fileContent = fs.readFileSync(filePath, 'utf8');
     if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
-        const propertiesContent = convertYamlToProperties(fileContent);
+        const jsonContent = convertYamlToJson(fileContent);
+        const propertiesContent = convertJsonToProperties(jsonContent);
         checkPropertyKeys(propertiesContent, deprecatedKeys, removedKeys, filePath);
     } else if (filePath.endsWith('.properties')) {
         checkPropertyKeys(fileContent, deprecatedKeys, removedKeys, filePath);
