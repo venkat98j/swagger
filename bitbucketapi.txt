@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import * as jsonToProperties from 'json-to-properties';
+import * as flat from 'flat';
+import * as PropertiesReader from 'properties-reader';
 
 const directoryPath = '/path/to/your/directory'; // Replace with the actual directory path
 const deprecatedListPath = 'deprecatedlist.txt';
@@ -12,27 +13,23 @@ function convertYamlToJson(yamlString: string): any {
     return yamlDocuments.map((doc: any) => doc || {}).reduce((acc: any, doc: any) => ({ ...acc, ...doc }), {});
 }
 
-function convertJsonToProperties(json: any): string {
-    return jsonToProperties(json, { separator: '.' });
-}
-
 function readPropertyKeysFromFile(filePath: string): string[] {
     const content = fs.readFileSync(filePath, 'utf8');
     return content.trim().split('\n');
 }
 
-function checkPropertyKeys(fileContent: string, deprecatedKeys: string[], removedKeys: string[], filePath: string): void {
+function checkPropertyKeysForPropertiesFile(properties: any, deprecatedKeys: string[], removedKeys: string[], filePath: string): void {
     let deprecatedPropertiesFound = false;
     let removedPropertiesFound = false;
 
     for (const deprecatedKey of deprecatedKeys) {
-        if (fileContent.includes(`${deprecatedKey}=`)) {
+        if (properties.getRaw(deprecatedKey) !== undefined) {
             deprecatedPropertiesFound = true;
         }
     }
 
     for (const removedKey of removedKeys) {
-        if (fileContent.includes(`${removedKey}=`)) {
+        if (properties.getRaw(removedKey) !== undefined) {
             removedPropertiesFound = true;
         }
     }
@@ -42,7 +39,7 @@ function checkPropertyKeys(fileContent: string, deprecatedKeys: string[], remove
         if (deprecatedPropertiesFound) {
             console.log('Deprecated Properties:');
             for (const deprecatedKey of deprecatedKeys) {
-                if (fileContent.includes(`${deprecatedKey}=`)) {
+                if (properties.getRaw(deprecatedKey) !== undefined) {
                     console.log(`  ${deprecatedKey}`);
                 }
             }
@@ -50,7 +47,45 @@ function checkPropertyKeys(fileContent: string, deprecatedKeys: string[], remove
         if (removedPropertiesFound) {
             console.log('Removed Properties:');
             for (const removedKey of removedKeys) {
-                if (fileContent.includes(`${removedKey}=`)) {
+                if (properties.getRaw(removedKey) !== undefined) {
+                    console.log(`  ${removedKey}`);
+                }
+            }
+        }
+        console.log('\n');
+    }
+}
+
+function checkPropertyKeys(flattenedJson: any, deprecatedKeys: string[], removedKeys: string[], filePath: string): void {
+    let deprecatedPropertiesFound = false;
+    let removedPropertiesFound = false;
+
+    for (const deprecatedKey of deprecatedKeys) {
+        if (flattenedJson.hasOwnProperty(deprecatedKey)) {
+            deprecatedPropertiesFound = true;
+        }
+    }
+
+    for (const removedKey of removedKeys) {
+        if (flattenedJson.hasOwnProperty(removedKey)) {
+            removedPropertiesFound = true;
+        }
+    }
+
+    if (deprecatedPropertiesFound || removedPropertiesFound) {
+        console.log(`File Path: ${filePath}`);
+        if (deprecatedPropertiesFound) {
+            console.log('Deprecated Properties:');
+            for (const deprecatedKey of deprecatedKeys) {
+                if (flattenedJson.hasOwnProperty(deprecatedKey)) {
+                    console.log(`  ${deprecatedKey}`);
+                }
+            }
+        }
+        if (removedPropertiesFound) {
+            console.log('Removed Properties:');
+            for (const removedKey of removedKeys) {
+                if (flattenedJson.hasOwnProperty(removedKey)) {
                     console.log(`  ${removedKey}`);
                 }
             }
@@ -63,10 +98,11 @@ function processFile(filePath: string, deprecatedKeys: string[], removedKeys: st
     const fileContent = fs.readFileSync(filePath, 'utf8');
     if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
         const jsonContent = convertYamlToJson(fileContent);
-        const propertiesContent = convertJsonToProperties(jsonContent);
-        checkPropertyKeys(propertiesContent, deprecatedKeys, removedKeys, filePath);
+        const flattenedJson = flat.flatten(jsonContent);
+        checkPropertyKeys(flattenedJson, deprecatedKeys, removedKeys, filePath);
     } else if (filePath.endsWith('.properties')) {
-        checkPropertyKeys(fileContent, deprecatedKeys, removedKeys, filePath);
+        const properties = PropertiesReader(filePath);
+        checkPropertyKeysForPropertiesFile(properties, deprecatedKeys, removedKeys, filePath);
     }
 }
 
