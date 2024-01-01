@@ -7,23 +7,26 @@ const deprecatedListPath = 'deprecatedlist.txt';
 const removeListPath = 'removelist.txt';
 
 function convertYamlToProperties(yamlString: string): string {
-    const yamlObject = yaml.safeLoad(yamlString);
-    return traverseObject(yamlObject);
+    const yamlDocuments = yaml.safeLoadAll(yamlString);
+    return yamlDocuments.map(traverseObject).join('\n');
 }
 
-function traverseObject(obj: Record<string, any>, currentPath: string[] = []): string {
+function traverseObject(obj: Record<string, any>): string {
     let properties = '';
 
-    for (const [key, value] of Object.entries(obj)) {
-        const newPath = [...currentPath, key];
-        if (typeof value === 'object' && !Array.isArray(value)) {
-            // Recursively traverse nested objects
-            properties += traverseObject(value, newPath);
-        } else {
-            // Convert the path and value to properties file notation
-            properties += `${newPath.join('.')}=${value}\n`;
+    const traverse = (currentPath: string[] = []) => {
+        for (const [key, value] of Object.entries(obj)) {
+            const newPath = [...currentPath, key];
+            if (typeof value === 'object' && !Array.isArray(value)) {
+                traverse(newPath);
+            } else {
+                // Convert the path and value to properties file notation
+                properties += `${newPath.join('.')}=${value}\n`;
+            }
         }
-    }
+    };
+
+    traverse();
 
     return properties;
 }
