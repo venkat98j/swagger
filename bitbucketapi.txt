@@ -96,4 +96,15 @@ function processDirectory(directoryPath: string, deprecatedKeys: string[], remov
         const filePath = path.join(directoryPath, file);
         if (fs.statSync(filePath).isDirectory()) {
             processDirectory(filePath, deprecatedKeys, removedKeys);
-        } else
+        } else {
+            processFile(filePath, deprecatedKeys, removedKeys);
+        }
+    });
+}
+
+// Read deprecated and removed property keys from files
+const deprecatedKeys = readPropertyKeysFromFile(deprecatedListPath);
+const removedKeys = readPropertyKeysFromFile(removeListPath);
+
+// Start processing the directory
+processDirectory(directoryPath, deprecatedKeys, removedKeys);
