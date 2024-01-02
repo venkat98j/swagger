@@ -1,126 +1,54 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as yaml from 'js-yaml';
-import * as flat from 'flat';
-import * as PropertiesReader from 'properties-reader';
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringApplicationRunListener;
+import org.springframework.core.Ordered;
+import org.springframework.core.env.ConfigurableEnvironment;
 
-const directoryPath = '/path/to/your/directory'; // Replace with the actual directory path
-const deprecatedListPath = 'deprecatedlist.txt';
-const removeListPath = 'removelist.txt';
+public class CustomRunListener implements SpringApplicationRunListener, Ordered {
 
-function convertYamlToJson(yamlString: string): any {
-    const yamlDocuments = yaml.safeLoadAll(yamlString);
-    return yamlDocuments.map((doc: any) => doc || {}).reduce((acc: any, doc: any) => ({ ...acc, ...doc }), {});
-}
-
-function readPropertyKeysFromFile(filePath: string): string[] {
-    const content = fs.readFileSync(filePath, 'utf8');
-    return content.trim().split('\n');
-}
-
-function checkPropertyKeysForPropertiesFile(properties: any, deprecatedKeys: string[], removedKeys: string[], filePath: string): void {
-    let deprecatedPropertiesFound = false;
-    let removedPropertiesFound = false;
-
-    for (const deprecatedKey of deprecatedKeys) {
-        if (properties.getRaw(deprecatedKey) !== undefined) {
-            deprecatedPropertiesFound = true;
-        }
+    public CustomRunListener(SpringApplication application, String[] args) {
+        // Constructor
     }
 
-    for (const removedKey of removedKeys) {
-        if (properties.getRaw(removedKey) !== undefined) {
-            removedPropertiesFound = true;
-        }
+    @Override
+    public void starting() {
+        // Executed when the application is starting
     }
 
-    if (deprecatedPropertiesFound || removedPropertiesFound) {
-        console.log(`File Path: ${filePath}`);
-        if (deprecatedPropertiesFound) {
-            console.log('Deprecated Properties:');
-            for (const deprecatedKey of deprecatedKeys) {
-                if (properties.getRaw(deprecatedKey) !== undefined) {
-                    console.log(`  ${deprecatedKey}`);
-                }
-            }
-        }
-        if (removedPropertiesFound) {
-            console.log('Removed Properties:');
-            for (const removedKey of removedKeys) {
-                if (properties.getRaw(removedKey) !== undefined) {
-                    console.log(`  ${removedKey}`);
-                }
-            }
-        }
-        console.log('\n');
+    @Override
+    public void environmentPrepared(ConfigurableEnvironment environment) {
+        // Executed when the environment is prepared
+    }
+
+    @Override
+    public void contextPrepared() {
+        // Executed when the context is prepared
+    }
+
+    @Override
+    public void contextLoaded() {
+        // Executed when the context is loaded
+    }
+
+    @Override
+    public void started() {
+        // Executed when the application has started
+    }
+
+    @Override
+    public void running() {
+        // Executed when the application is running
+    }
+
+    @Override
+    public void failed(ConfigurableEnvironment environment, Throwable exception) {
+        // Executed when the application startup fails
+        // Handle the exception appropriately
+        exception.printStackTrace();
+    }
+
+    @Override
+    public int getOrder() {
+        // Define the order of the listener
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }
-
-function checkPropertyKeys(flattenedJson: any, deprecatedKeys: string[], removedKeys: string[], filePath: string): void {
-    let deprecatedPropertiesFound = false;
-    let removedPropertiesFound = false;
-
-    for (const deprecatedKey of deprecatedKeys) {
-        if (flattenedJson.hasOwnProperty(deprecatedKey)) {
-            deprecatedPropertiesFound = true;
-        }
-    }
-
-    for (const removedKey of removedKeys) {
-        if (flattenedJson.hasOwnProperty(removedKey)) {
-            removedPropertiesFound = true;
-        }
-    }
-
-    if (deprecatedPropertiesFound || removedPropertiesFound) {
-        console.log(`File Path: ${filePath}`);
-        if (deprecatedPropertiesFound) {
-            console.log('Deprecated Properties:');
-            for (const deprecatedKey of deprecatedKeys) {
-                if (flattenedJson.hasOwnProperty(deprecatedKey)) {
-                    console.log(`  ${deprecatedKey}`);
-                }
-            }
-        }
-        if (removedPropertiesFound) {
-            console.log('Removed Properties:');
-            for (const removedKey of removedKeys) {
-                if (flattenedJson.hasOwnProperty(removedKey)) {
-                    console.log(`  ${removedKey}`);
-                }
-            }
-        }
-        console.log('\n');
-    }
-}
-
-function processFile(filePath: string, deprecatedKeys: string[], removedKeys: string[]): void {
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
-        const jsonContent = convertYamlToJson(fileContent);
-        const flattenedJson = flat.flatten(jsonContent);
-        checkPropertyKeys(flattenedJson, deprecatedKeys, removedKeys, filePath);
-    } else if (filePath.endsWith('.properties')) {
-        const properties = PropertiesReader(filePath);
-        checkPropertyKeysForPropertiesFile(properties, deprecatedKeys, removedKeys, filePath);
-    }
-}
-
-function processDirectory(directoryPath: string, deprecatedKeys: string[], removedKeys: string[]): void {
-    const files = fs.readdirSync(directoryPath);
-    files.forEach((file) => {
-        const filePath = path.join(directoryPath, file);
-        if (fs.statSync(filePath).isDirectory()) {
-            processDirectory(filePath, deprecatedKeys, removedKeys);
-        } else {
-            processFile(filePath, deprecatedKeys, removedKeys);
-        }
-    });
-}
-
-// Read deprecated and removed property keys from files
-const deprecatedKeys = readPropertyKeysFromFile(deprecatedListPath);
-const removedKeys = readPropertyKeysFromFile(removeListPath);
-
-// Start processing the directory
-processDirectory(directoryPath, deprecatedKeys, removedKeys);
