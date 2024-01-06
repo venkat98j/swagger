@@ -1,54 +1,32 @@
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringApplicationRunListener;
-import org.springframework.core.Ordered;
-import org.springframework.core.env.ConfigurableEnvironment;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.util.spi.LocaleServiceProvider;
+import java.lang.reflect.Field;
 
-public class CustomRunListener implements SpringApplicationRunListener, Ordered {
+public class TestMultiplePackagesAccess {
+    public static void main(String[] args) {
+        // Test access to java.lang.invoke.MethodHandles.Lookup
+        try {
+            Class<?> lookupClass = Class.forName("java.lang.invoke.MethodHandles$Lookup");
+            Field implLookupField = lookupClass.getDeclaredField("IMPL_LOOKUP");
+            implLookupField.setAccessible(true);
+            Lookup lookupInstance = (Lookup) implLookupField.get(null);
+            System.out.println("Lookup class name: " + lookupInstance.getClass().getName());
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
-    public CustomRunListener(SpringApplication application, String[] args) {
-        // Constructor
-    }
-
-    @Override
-    public void starting() {
-        // Executed when the application is starting
-    }
-
-    @Override
-    public void environmentPrepared(ConfigurableEnvironment environment) {
-        // Executed when the environment is prepared
-    }
-
-    @Override
-    public void contextPrepared() {
-        // Executed when the context is prepared
-    }
-
-    @Override
-    public void contextLoaded() {
-        // Executed when the context is loaded
-    }
-
-    @Override
-    public void started() {
-        // Executed when the application has started
-    }
-
-    @Override
-    public void running() {
-        // Executed when the application is running
-    }
-
-    @Override
-    public void failed(ConfigurableEnvironment environment, Throwable exception) {
-        // Executed when the application startup fails
-        // Handle the exception appropriately
-        exception.printStackTrace();
-    }
-
-    @Override
-    public int getOrder() {
-        // Define the order of the listener
-        return Ordered.HIGHEST_PRECEDENCE;
+        // Test access to java.util.spi.LocaleServiceProvider
+        try {
+            Class<?> localeServiceProviderClass = Class.forName("java.util.spi.LocaleServiceProvider");
+            Field providersField = localeServiceProviderClass.getDeclaredField("providers");
+            providersField.setAccessible(true);
+            Object providersInstance = providersField.get(null);
+            System.out.println("LocaleServiceProvider class name: " + providersInstance.getClass().getName());
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 }
+
+--add-opens java.base/java.lang.invoke=ALL-UNNAMED and --add-opens java.base/java.util.spi=ALL-UNNAMED
