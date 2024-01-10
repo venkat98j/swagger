@@ -1,5 +1,1 @@
-Migrating from JDK 8 to newer versions comes with significant changes, notably strong encapsulation. This restricts access to internal parts, affecting reflective operations. To maintain compatibility, need to use --add-opens for reflective access. During service startup, if you encounter such 
-add the required module in JavOpts.  For example
-
-
 
