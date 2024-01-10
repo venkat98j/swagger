@@ -1,32 +1,5 @@
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodHandles.Lookup;
-import java.util.spi.LocaleServiceProvider;
-import java.lang.reflect.Field;
+Migrating from JDK 8 to newer versions comes with significant changes, notably strong encapsulation. This restricts access to internal parts, affecting reflective operations. To maintain compatibility, need to use --add-opens for reflective access. During service startup, if you encounter such 
+add the required module in JavOpts.  For example
 
-public class TestMultiplePackagesAccess {
-    public static void main(String[] args) {
-        // Test access to java.lang.invoke.MethodHandles.Lookup
-        try {
-            Class<?> lookupClass = Class.forName("java.lang.invoke.MethodHandles$Lookup");
-            Field implLookupField = lookupClass.getDeclaredField("IMPL_LOOKUP");
-            implLookupField.setAccessible(true);
-            Lookup lookupInstance = (Lookup) implLookupField.get(null);
-            System.out.println("Lookup class name: " + lookupInstance.getClass().getName());
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
 
-        // Test access to java.util.spi.LocaleServiceProvider
-        try {
-            Class<?> localeServiceProviderClass = Class.forName("java.util.spi.LocaleServiceProvider");
-            Field providersField = localeServiceProviderClass.getDeclaredField("providers");
-            providersField.setAccessible(true);
-            Object providersInstance = providersField.get(null);
-            System.out.println("LocaleServiceProvider class name: " + providersInstance.getClass().getName());
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-}
 
---add-opens java.base/java.lang.invoke=ALL-UNNAMED and --add-opens java.base/java.util.spi=ALL-UNNAMED
