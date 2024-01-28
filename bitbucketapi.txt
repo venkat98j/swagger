@@ -1,79 +1,81 @@
+import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.slf4j.Logger;
+import ch.qos.logback.core.AppenderBase;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.boot.context.event.ApplicationStartingEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.util.List;
-
 @SpringBootApplication
 public class YourSpringBootApplication {
 
-    private static final Logger log = LoggerFactory.getLogger(YourSpringBootApplication.class);
+    private static final Logger log = (Logger) LoggerFactory.getLogger(YourSpringBootApplication.class);
 
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(YourSpringBootApplication.class);
 
-        // Register the ApplicationStartedListener
-        application.addListeners(new ApplicationStartedListener());
+        // Register the ApplicationListener
+        application.addListeners(new CustomApplicationListener());
 
         ConfigurableApplicationContext context = application.run(args);
-
-        // Access logs after the application has started
-        List<String> startupLogs = ApplicationStartedListener.getLogs();
-        for (String logMessage : startupLogs) {
-            log.info("Captured log during startup: {}", logMessage);
-        }
 
         // Optionally, close the application context
         context.close();
     }
 }
 
-class ApplicationStartedListener implements ApplicationListener<ApplicationEvent> {
+class CustomApplicationListener implements ApplicationListener<ApplicationEvent> {
 
-    private static final Logger log = LoggerFactory.getLogger(ApplicationStartedListener.class);
-    private static final ListAppender<ILoggingEvent> listAppender = configureListAppender();
+    private static final Logger log = (Logger) LoggerFactory.getLogger(CustomApplicationListener.class);
+
+    private static final StringBuilder logs = new StringBuilder();
 
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
-        if (event instanceof ApplicationStartedEvent) {
-            // Access logs after the application has started
-            List<String> startupLogs = getLogs();
-            for (String logMessage : startupLogs) {
-                log.info("Captured log during startup: {}", logMessage);
-            }
+        if (event instanceof ApplicationStartingEvent) {
+            // Attach the custom appender when the application is starting
+            attachAppender();
+        } else if (event instanceof ApplicationStartedEvent) {
+            // Access captured logs after the application has started
+            log.info("Captured logs during startup:\n{}", getLogs());
 
-            // Optionally, remove the appender
-            removeListAppender(listAppender);
+            // Optionally, remove the custom appender after capturing logs
+            detachAppender();
+        }
+        // You can handle other events here if needed
+    }
+
+    private void attachAppender() {
+        CustomAppender appender = new CustomAppender();
+        appender.start();
+        log.addAppender(appender);
+    }
+
+    private void detachAppender() {
+        CustomAppender appender = (CustomAppender) log.getAppender("CUSTOM_APPENDER");
+        if (appender != null) {
+            appender.stop();
+            log.detachAppender(appender);
         }
     }
 
-    private static ListAppender<ILoggingEvent> configureListAppender() {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        ListAppender<ILoggingEvent> appender = new ListAppender<>();
-        appender.start();
-        loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(appender);
-        return appender;
+    private String getLogs() {
+        return logs.toString();
     }
 
-    public static List<String> getLogs() {
-        return ListAppender.getLogs();
-    }
+    static class CustomAppender extends AppenderBase<ILoggingEvent> {
 
-    private static void removeListAppender(ListAppender<ILoggingEvent> appender) {
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-        Appender<ILoggingEvent> existingAppender = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).getAppender(appender.getName());
+        private static final Logger log = (Logger) LoggerFactory.getLogger(CustomAppender.class);
 
-        if (existingAppender != null) {
-            existingAppender.stop();
-            loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).detachAppender(existingAppender);
+        @Override
+        protected void append(ILoggingEvent eventObject) {
+            String logMessage = eventObject.getFormattedMessage();
+            logs.append(logMessage).append("\n");
+            log.info("Captured log: {}", logMessage);
         }
     }
 }
-
