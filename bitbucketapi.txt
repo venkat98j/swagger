@@ -1,1 +1,79 @@
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
+
+import java.util.List;
+
+@SpringBootApplication
+public class YourSpringBootApplication {
+
+    private static final Logger log = LoggerFactory.getLogger(YourSpringBootApplication.class);
+
+    public static void main(String[] args) {
+        SpringApplication application = new SpringApplication(YourSpringBootApplication.class);
+
+        // Register the ApplicationStartedListener
+        application.addListeners(new ApplicationStartedListener());
+
+        ConfigurableApplicationContext context = application.run(args);
+
+        // Access logs after the application has started
+        List<String> startupLogs = ApplicationStartedListener.getLogs();
+        for (String logMessage : startupLogs) {
+            log.info("Captured log during startup: {}", logMessage);
+        }
+
+        // Optionally, close the application context
+        context.close();
+    }
+}
+
+class ApplicationStartedListener implements ApplicationListener<ApplicationEvent> {
+
+    private static final Logger log = LoggerFactory.getLogger(ApplicationStartedListener.class);
+    private static final ListAppender<ILoggingEvent> listAppender = configureListAppender();
+
+    @Override
+    public void onApplicationEvent(ApplicationEvent event) {
+        if (event instanceof ApplicationStartedEvent) {
+            // Access logs after the application has started
+            List<String> startupLogs = getLogs();
+            for (String logMessage : startupLogs) {
+                log.info("Captured log during startup: {}", logMessage);
+            }
+
+            // Optionally, remove the appender
+            removeListAppender(listAppender);
+        }
+    }
+
+    private static ListAppender<ILoggingEvent> configureListAppender() {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).addAppender(appender);
+        return appender;
+    }
+
+    public static List<String> getLogs() {
+        return ListAppender.getLogs();
+    }
+
+    private static void removeListAppender(ListAppender<ILoggingEvent> appender) {
+        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        Appender<ILoggingEvent> existingAppender = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).getAppender(appender.getName());
+
+        if (existingAppender != null) {
+            existingAppender.stop();
+            loggerContext.getLogger(Logger.ROOT_LOGGER_NAME).detachAppender(existingAppender);
+        }
+    }
+}
 
