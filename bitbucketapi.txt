@@ -1,2 +1,4 @@
-// Register the ApplicationListener
+   SpringApplication application = new SpringApplication(YourSpringBootApplication.class);
+
+        // Register the ApplicationListener
         application.addListeners(new CustomApplicationListener());
