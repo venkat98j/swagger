@@ -1,4 +1,27 @@
-   SpringApplication application = new SpringApplication(YourSpringBootApplication.class);
+import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertySource;
 
-        // Register the ApplicationListener
-        application.addListeners(new CustomApplicationListener());
+public class PropertySourceRemovalListener implements
+        ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+
+    @Override
+    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
+        ConfigurableEnvironment environment = event.getEnvironment();
+        MutablePropertySources propertySources = environment.getPropertySources();
+
+        // Remove property sources based on certain condition
+        removePropertySources(propertySources);
+    }
+
+    private void removePropertySources(MutablePropertySources propertySources) {
+        // Iterate through property sources and remove those that meet certain criteria
+        // For example, remove property sources that contain a specific property
+        propertySources.forEach(propertySource -> {
+            if (propertySourceContainsProperty(propertySource, "propertyNameToRemove")) {
+                propertySources.remove(propertySource.getName());
+            }
+        });
+    }
