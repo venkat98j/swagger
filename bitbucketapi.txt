@@ -25,3 +25,10 @@ public class PropertySourceRemovalListener implements
             }
         });
     }
+
+private boolean propertySourceContainsProperty(PropertySource<?> propertySource, String propertyName) {
+        return propertySource.containsProperty(propertyName);
+    }
+
+org.springframework.context.ApplicationListener=\
+  com.example.PropertySourceRemovalListener
