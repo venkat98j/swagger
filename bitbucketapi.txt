@@ -1,3 +1,61 @@
-# Application Listeners
-org.springframework.context.ApplicationListener=\
-org.springframework.boot.context.properties.migrator.PropertiesMigrationListener
+
+Thank you for giving me this opportunity for introduce myself, I'm from chennai..
+
+following xxx here is another chennaite
+
+4th largest city in India
+having one of the longest beach, which is around 8 miles
+another nickname - Detroit of India, its a major hub of Automobile manufacturing
+10% world's iphone production
+Also ranks high in medical tourism
+
+
+i had done Bachelors in engg from annauniversity, also done executive management program
+in Greatlakes
+
+
+i started my IT career in TCS Delhi, after few months, relocated to bangloare, and was there
+for 1 and half year, working on Mainframe/DB2 and my first client 
+happened to be Citi
+
+Then joined iGate and moved to US.   Initially worked at couple of 
+client places and with exposure to multiple systems, got opportuning to learn and support Visual Basic applicaton..
+
+with that started my journey with Microsoft technogies, including ASP, SQL server and then ended up in a start up company, GreatDomains,
+which was there in North Holly wood, near LA, was there for couple of years..  then it was acquired by Verisign.. and relocated to Virigina
+
+Verisign is mainly Java shop, thats where my transition to Java started...  was with them for 4 years
+then decided to move back to Chennai and then joined Navis, after few yrs, joined Station i, a start up company where i was managing engg of mobile applications both android and ios
+
+with mobile background, joined Citi in Global Mobile team, after working thru regional transition, joined our platform team..
+
+over the years, i had the unique opportunity to work in multiple tech stack, wide range of companies from service, product development, startup and banking and also had exposure to multiple 
+domains including health care, logistics and little bit of network monitoring systems..  my strength lies in adapting to change, always open to new challenges,  and whenever i find free time, 
+i do read abt new technogies and keep me up to date..
+
+apart from work, i like following cricket, world cup football..  latest movies/series..
+
+daily i set aside some time for fitness, usually go for walking or gym or swimming in summer...
+
+
+
+coming to my family
+
+she works as a preschool teacher, have two daughters Keerthana and Akshara..  she just college and doing engineering..  she is good in singing and drawing
+
+2nd daughter Akshara is in 10th grade, likes roller skatting and playing table tennis
+
+when we find time during weekend, we usually go to beach or some temple around and our favourite restaurant is New woodlands, you get good south indian food and you find ample car parking which is scarce in chennai
+
+during holidays, i like going on road trips, travelling hilstations like Kodaikonal, yercaud which is like 350 to 400 kms.. also like visiting old temples some of them are 1000 yrs old, 
+get fascinated by the architecture
+
+there are few more members in the family...
+
+
+
+
+
+
+
+
