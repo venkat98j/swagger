@@ -1,1 +1,1 @@
-
+| rex field=message "\((?<content_inside_braces>[^\)]+)\)"
