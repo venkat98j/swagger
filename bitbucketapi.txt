@@ -1,16 +1,5 @@
-   private void attachAppender() {
-        Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-        CustomAppender appender = new CustomAppender();
-        appender.setContext(logger.getLoggerContext());
-        appender.start();
-        logger.addAppender(appender);
-    }
-
-    private void detachAppender() {
-        Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-        CustomAppender appender = (CustomAppender) logger.getAppender("CUSTOM_APPENDER");
-        if (appender != null) {
-            appender.stop();
-            logger.detachAppender(appender);
-        }
+   @PostMapping(value = "/processFormData", consumes = "application/x-www-form-urlencoded")
+    public String processFormData(@RequestParam String param1, @RequestParam String param2) {
+        // Process the form data
+        return "Form Data Processed Successfully";
     }
