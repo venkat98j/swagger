@@ -1,5 +1,3 @@
-   @PostMapping(value = "/processFormData", consumes = "application/x-www-form-urlencoded")
-    public String processFormData(@RequestParam String param1, @RequestParam String param2) {
-        // Process the form data
-        return "Form Data Processed Successfully";
-    }
+Resilience4j doesn't have an exact equivalent to Hystrix's queueSizeRejectionThreshold because Resilience4j doesn't use a queue for handling requests like Hystrix does. Instead, Resilience4j focuses on bulkheading and rate limiting as opposed to maintaining a request queue.
+
+In Resilience4j, you can use the concept of Bulkheading, which limits the number of concurrent executions. The Semaphore based bulkhead is commonly used for this purpose. You can set the maximum number of concurrent calls allowed by configuring the bulkhead.
