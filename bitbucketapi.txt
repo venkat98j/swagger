@@ -1,3 +1,24 @@
-Resilience4j doesn't have an exact equivalent to Hystrix's queueSizeRejectionThreshold because Resilience4j doesn't use a queue for handling requests like Hystrix does. Instead, Resilience4j focuses on bulkheading and rate limiting as opposed to maintaining a request queue.
-
-In Resilience4j, you can use the concept of Bulkheading, which limits the number of concurrent executions. The Semaphore based bulkhead is commonly used for this purpose. You can set the maximum number of concurrent calls allowed by configuring the bulkhead.
+!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Please Log In</title>
+    </head>
+    <body>
+        <h1>Please Log In</h1>
+        <c:if test="${param.error}">
+            <div>Invalid username and password.</div>
+        </c:if>
+        <c:if test="${param.logout}">
+            <div>You have been logged out.</div>
+        </c:if>
+        <form action="${pageContext.request.contextPath}/login" method="post">
+            <div>
+                <input type="text" name="username" placeholder="Username"/>
+            </div>
+            <div>
+                <input type="password" name="password" placeholder="Password"/>
+            </div>
+            <input type="submit" value="Log in" />
+        </form>
+    </body>
+</html>
