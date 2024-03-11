@@ -22,3 +22,61 @@
         </form>
     </body>
 </html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Please Log In</title>
+    <style>
+        /* Add your styles here */
+    </style>
+</head>
+<body>
+    <h1>Please Log In</h1>
+    <div id="error-message" style="color: red;"></div>
+    <form id="loginForm">
+        <div>
+            <input type="text" id="username" placeholder="Username"/>
+        </div>
+        <div>
+            <input type="password" id="password" placeholder="Password"/>
+        </div>
+        <input type="button" value="Log in" onclick="submitForm()" />
+    </form>
+
+    <script>
+        function submitForm() {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/login", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        // Check the response for success or failure
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            // Redirect or perform any desired action for successful login
+                            window.location.href = "/dashboard";
+                        } else {
+                            document.getElementById("error-message").innerText = "Invalid username and password.";
+                        }
+                    } else {
+                        // Handle server error
+                        document.getElementById("error-message").innerText = "Server error. Please try again later.";
+                    }
+                }
+            };
+
+            var data = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password);
+            xhr.send(data);
+        }
+    </script>
+</body>
+</html>
