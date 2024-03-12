@@ -1,150 +1,59 @@
-!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <title>Please Log In</title>
-    </head>
-    <body>
-        <h1>Please Log In</h1>
-        <c:if test="${param.error}">
-            <div>Invalid username and password.</div>
-        </c:if>
-        <c:if test="${param.logout}">
-            <div>You have been logged out.</div>
-        </c:if>
-        <form action="${pageContext.request.contextPath}/login" method="post">
-            <div>
-                <input type="text" name="username" placeholder="Username"/>
-            </div>
-            <div>
-                <input type="password" name="password" placeholder="Password"/>
-            </div>
-            <input type="submit" value="Log in" />
-        </form>
-    </body>
-</html>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Please Log In</title>
-    <style>
-        /* Add your styles here */
-    </style>
+    <title>Login</title>
 </head>
 <body>
-    <h1>Please Log In</h1>
-    <div id="error-message" style="color: red;"></div>
-    <form id="loginForm">
-        <div>
-            <input type="text" id="username" placeholder="Username"/>
-        </div>
-        <div>
-            <input type="password" id="password" placeholder="Password"/>
-        </div>
-        <input type="button" value="Log in" onclick="submitForm()" />
+    <h2>Login</h2>
+    <form id="loginForm" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="button" onclick="login()">Login</button>
     </form>
 
+    <div id="result"></div>
+
     <script>
-        function submitForm() {
-            var username = document.getElementById("username").value;
-            var password = document.getElementById("password").value;
+        function login() {
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+
+            // Dynamically retrieve the context root from the current URL
+            var contextRoot = window.location.pathname.split('/')[1];
+
+            var formAction = '/' + contextRoot + '/login'; // Construct the correct form action
+            document.getElementById('loginForm').action = formAction;
 
             var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/login", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.open('POST', formAction, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
 
             xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4) {
-                    if (xhr.status == 200) {
-                        // Check the response for success or failure
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
                         var response = JSON.parse(xhr.responseText);
-                        if (response.success) {
-                            // Redirect or perform any desired action for successful login
-                            window.location.href = "/dashboard";
-                        } else {
-                            document.getElementById("error-message").innerText = "Invalid username and password.";
-                        }
+                        // Handle the response, e.g., store the token or redirect
+                        document.getElementById('result').innerText = 'Login successful';
                     } else {
-                        // Handle server error
-                        document.getElementById("error-message").innerText = "Server error. Please try again later.";
+                        // Handle authentication failure
+                        document.getElementById('result').innerText = 'Login failed';
                     }
                 }
             };
 
-            var data = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password);
+            var data = JSON.stringify({
+                username: username,
+                password: password
+            });
+
             xhr.send(data);
         }
     </script>
 </body>
 </html>
-
-Create a JSP file (e.g., login.jsp) in the src/main/webapp/WEB-INF/views directory:
-
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-<body>
-    <h2>Login</h2>
-
-    <c:if test="${param.error ne null}">
-        <p style="color: red;">Invalid username and/or password.</p>
-    </c:if>
-
-    <c:if test="${param.logout ne null}">
-        <p style="color: green;">You have been successfully logged out.</p>
-    </c:if>
-
-    <form action="<c:url value='/login' />" method="post">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required autofocus><br>
-
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br>
-
-        <button type="submit">Login</button>
-    </form>
-</body>
-</html>
-
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-            .authorizeRequests()
-                .antMatchers("/login").permitAll()
-                .anyRequest().authenticated()
-                .and()
-            .formLogin()
-                .loginPage("/login")
-                .defaultSuccessUrl("/home", true)
-                .permitAll()
-                .and()
-            .logout()
-                .permitAll();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-}
-
